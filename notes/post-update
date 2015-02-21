@@ -30,11 +30,18 @@ if [ -z "$jobname" ]; then
 	exit 0
 fi
 
-pdflatex_command='/usr/local/texlive/2014/bin/x86_64-linux/xelatex %O %S'
-latexmk_command='/usr/local/texlive/2014/bin/x86_64-linux/latexmk'
+
 case " $@ " in
 *" refs/heads/$master_name "*)
 	echo "*** Update pushed to $master_name, building TeX file."
+	pdflatex_command=$(git config hooks.autotex.pdflatex)
+	latexmk_command=$(git config hooks.autotex.latexmk)
+	if [ -z "$pdflatex_command" ]; then
+		pdflatex_command="pdflatex %O %S"
+	fi
+	if [ -z "$latexmk_command" ]; then
+		latexmk_command="latexmk"
+	fi
 	workdir="$buildroot$builddir"
 	#create working dir if it doesn't exist yet
 	if [ ! -d "$workdir" ]; then
