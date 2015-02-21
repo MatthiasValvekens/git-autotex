@@ -25,7 +25,7 @@ if [ -z "$master_name" ]; then
 fi
 jobname=$(git config hooks.autotex.jobname)
 #TODO: pull these from some list, to allow for multiple jobs
-if [ -z "$jobname" ];
+if [ -z "$jobname" ]; then
 	echo "*** Job name is not set. I don't know what to compile." >&2
 	exit 0
 fi
