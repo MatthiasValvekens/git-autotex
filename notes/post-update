@@ -49,7 +49,7 @@ case " $@ " in
 	cd "$workdir"
 	rm "$jobname.pdf"
 	export TEXINPUTS='./common//:'
-	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex" > latexmk_build.log
+	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex" >> latexmk_build.log
 	if [ $? -ne 0 ]; then
 		echo "*** Failed to build notes" >&2
 		exit 1
@@ -59,6 +59,7 @@ case " $@ " in
 		cp "$jobname.pdf" "$publishto"
 		if [ $? -ne 0 ]; then
 			echo "*** Failed to copy $jobname.pdf to $publishto" >&2
+			exit 1
 		else
 			echo "$jobname.pdf was published to $publishto"
 			exit 0
