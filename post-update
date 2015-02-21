@@ -55,7 +55,6 @@ case " $@ " in
 	git --work-tree="$workdir" --git-dir="$GIT_DIR" checkout -f
 	cd "$workdir"
 	rm "$jobname.pdf"
-	export TEXINPUTS='./common//:'
 	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex" >> latexmk_build.log
 	if [ $? -ne 0 ]; then
 		echo "*** Failed to build notes" >&2
