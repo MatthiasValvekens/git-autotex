@@ -1,0 +1,11 @@
+#!/bin/sh
+case " $@ " in
+*' refs/heads/master '*)
+	git --work-tree=/opt/mathgit-build/spectral/ --git-dir=/opt/mathgit/spectral.git checkout -f
+	cd /opt/mathgit-build/spectral/
+	./build-notes.sh > build-notes.log
+	if [ $? -ne 0 ]; then
+		echo "Failed to build notes"
+	fi
+	;;
+esac
