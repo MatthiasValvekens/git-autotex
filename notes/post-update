@@ -1,11 +1,72 @@
 #!/bin/sh
+buildroot=$(git config hooks.autotex.buildroot)
+if [ -z "$buildroot" ]; then
+	echo "*** No buildroot specified. Quitting." >&2
+	exit 1
+fi
+builddir=$(git config hooks.autotex.projectname)
+if [ -z "$builddir" ]; then
+	echo "*** No project name specified. Quitting." >&2
+	exit 1
+fi
+custom_texinputs=$(git config hooks.autotex.texinputs)
+
+# change texinputs if set
+if [ -n "$custom_texinputs" ]; then
+	export TEXINPUTS="$custom_texinputs"
+fi
+master_name=$(git config hooks.autotex.buildbranch)
+if [ -z "$master_name" ]; then
+	master_name=$(git config hooks.protectedbranch)
+	if [ -z "$master_name" ]; then
+		echo "*** No build branch specified. Nothing to do." >&2
+		exit 0
+	fi
+fi
+jobname=$(git config hooks.autotex.jobname)
+#TODO: pull these from some list, to allow for multiple jobs
+if [ -z "$jobname" ];
+	echo "*** Job name is not set. I don't know what to compile." >&2
+	exit 0
+fi
+
+pdflatex_command='/usr/local/texlive/2014/bin/x86_64-linux/xelatex %O %S'
+latexmk_command='/usr/local/texlive/2014/bin/x86_64-linux/latexmk'
 case " $@ " in
-*' refs/heads/master '*)
-	git --work-tree=/opt/mathgit-build/spectral/ --git-dir=/opt/mathgit/spectral.git checkout -f
-	cd /opt/mathgit-build/spectral/
-	./build-notes.sh > build-notes.log
+*" refs/heads/$master_name "*)
+	echo "*** Update pushed to $master_name, building TeX file."
+	workdir="$buildroot$builddir"
+	#create working dir if it doesn't exist yet
+	if [ ! -d "$workdir" ]; then
+		mkdir "$workdir"
+		if [ $? -ne 0 ]; then
+			echo "*** Failed to create build directory." >&2
+			exit 1
+		fi
+	fi
+	git --work-tree="$workdir" --git-dir="$GIT_DIR" checkout -f
+	cd "$workdir"
+	rm "$jobname.pdf"
+	export TEXINPUTS='./common//:'
+	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex"
 	if [ $? -ne 0 ]; then
-		echo "Failed to build notes"
+		echo "*** Failed to build notes" >&2
+		exit 1
+	fi
+	publishto=$(git config hooks.autotex.publishto)
+	# publish if publishto is set
+	if [ -n "$publishto" ]; then
+		cp "$jobname.pdf" "$publishto"
+		if [ $? -ne 0 ]; then
+			echo "*** Failed to copy $jobname.pdf to $publishto" >&2
+		else
+			echo "$jobname.pdf was published to $publishto"
+			exit 0
+		fi
+	else
+		echo "*** Publish location not set. Job done."
+		exit 0
 	fi
 	;;
 esac
+echo "No build refs pushed. Nothing to do."

@@ -25,8 +25,8 @@
 # hooks.protectmaster
 #   Only specific user is allowed to push to master
 
-special_uid='7777' # git user, mathgit not allowed
-master_name='master'
+special_uid=$(git config --int hooks.privilegeduid)
+master_name=$(git config hooks.protectedbranch)
 
 # --- Command line
 refname="$1"
