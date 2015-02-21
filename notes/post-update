@@ -44,16 +44,16 @@ case " $@ " in
 			exit 1
 		fi
 	fi
+	publishto=$(git config hooks.autotex.publishto)
 	git --work-tree="$workdir" --git-dir="$GIT_DIR" checkout -f
 	cd "$workdir"
 	rm "$jobname.pdf"
 	export TEXINPUTS='./common//:'
-	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex"
+	$latexmk_command -pdflatex="$pdflatex_command" -pdf "$jobname.tex" > latexmk_build.log
 	if [ $? -ne 0 ]; then
 		echo "*** Failed to build notes" >&2
 		exit 1
 	fi
-	publishto=$(git config hooks.autotex.publishto)
 	# publish if publishto is set
 	if [ -n "$publishto" ]; then
 		cp "$jobname.pdf" "$publishto"
